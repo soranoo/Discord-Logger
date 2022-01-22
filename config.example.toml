@@ -1,0 +1,48 @@
+# ---------------* Basic *---------------
+auto_reconnect = false
+
+# --------------* Discord *--------------
+discord_user_token = ""
+discord_webSocket = "wss://gateway.discord.gg/?v=9&encording=json"
+
+# ----------------* Log *----------------
+# save log as a text file
+log_save = true
+
+# console log with color
+log_color = true
+
+# include the current time zone into the log
+log_time_zone = false
+
+display_server_id = false
+display_channel_id = false
+display_user_id = false
+
+define_server = [
+    [["server_id"],["custom_server_name"]],
+]
+define_channel = [
+    [["channel_id"],["custom_channel_name"]],
+]
+
+# ----------------* Filter *---------------
+enable_server_whitelist = false
+enable_channel_whitelist = false
+whitelist_sever = [
+    "server_id",
+]
+whitelist_channel = [
+    "channel_id",
+]
+
+enable_server_blacklist = false
+enable_channel_blacklist = false
+blacklist_sever = [
+    "server_id",
+]
+blacklist_channel = [
+    "channel_id",
+]
+
+

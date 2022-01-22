@@ -1,0 +1,4 @@
+config.toml
+**/logs
+**/src/__pycache__
+*.pyc
