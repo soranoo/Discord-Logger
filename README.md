@@ -1,6 +1,7 @@
 # Discord-Logger
 Project start on 11-08-2021 and spin off from my secret project on 18-01-2022 :P
 
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 ### Portal ↠ [Installation](docs/gettingstarted.md#installing-python-package) · [Usage](docs/gettingstarted.md#logger-deployment) ↞
 
 ## Requirements
