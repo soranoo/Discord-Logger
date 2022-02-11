@@ -110,7 +110,7 @@ def add_logging_level(levelName, levelNum, methodName=None):
 
 def create_logger(logFolder = ""):
 	# config
-    dateFormat  = "%d-%m-%Y %I:%M:%S %p%z" if log_time_zone else "%d-%m-%Y %I:%M:%S"
+    dateFormat  = "%d-%m-%Y %H:%M:%S %z" if log_time_zone else "%d-%m-%Y %H:%M:%S"
     logging.captureWarnings(True) # catch py waring message
     formatter_file = logging.Formatter("%(asctime)s   |  %(levelname)-8s | %(message)s", datefmt=dateFormat)
     formatter_console_color = ColoredFormatter(f"{Colorcode.gray}%(asctime)s{Colorcode.reset}   |  %(log_color)s%(levelname)-8s%(reset)s | {Colorcode.white}%(message)s{Colorcode.reset}",

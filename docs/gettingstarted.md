@@ -1,4 +1,4 @@
-# Getting Started with Discord Logger
+# Getting Started with Discord-Logger
 
 ## Installation
 - [Installing Python package](#installing-python-package)
@@ -7,7 +7,6 @@
 
 ## Usage
 - [Logger Deployment](#logger-deployment)
-- [EZ Tool](#ez-tool)
 
 <a name="installing-python-package"></a>
 ## 1. Installing the Python package dependencies
@@ -41,8 +40,3 @@ You can adjust other settings on your own.
 ## 4. Logger Deployment
 
 1. Run `py main.py` in the command prompt.
-
-<a name="ez-tool"></a>
-## 5. EZ Tool
-
-Double click 'start-env.py' and the command prompt with the activated virtual environment will pop up.
