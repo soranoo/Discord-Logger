@@ -37,6 +37,10 @@ class clog:
     def warning(ctx):
         log.warning(f"{Colorcode.yellow}{ctx}{Colorcode.reset}")
 
+# ---------------* Store Message *---------------
+storeMessages = [
+]
+
 # ---------------* Main *---------------
 def send_json_request(ws, request):
     ws.send(json.dumps(request))
@@ -86,6 +90,7 @@ def on_message(ws, message):
             sub = f"{Colorcode.gray}﹃{Colorcode.reset}"
             event = json_message["d"]
             intent = json_message["t"] # ref: https://discord.com/developers/docs/topics/gateway#gateway-intents
+            messageID = event["id"] if "id" in event else None
             username = event["author"]["username"] if "author" in event else Colorcode.gray+"unknown"+Colorcode.reset
             userID = event["author"]["id"] if "author" in event else Colorcode.gray+"N/A"+Colorcode.reset
             serverID = event["guild_id"] if "guild_id" in event else None
@@ -103,12 +108,12 @@ def on_message(ws, message):
                     channelName = channel[1][0]
                     break
                 if serverID is None:
-                    channelName = "PrivateChat"
+                    channelName = "Direct Message"
                     break
 
             serverTag = f"[{serverName}({serverID})]" if serverName is not None and display_server_id is True and serverID != None else f"[{serverName}]" if serverName is not None and serverID != None else f"[{serverID}]" if display_server_id is True and serverID != None else ""
             channelTag = f"{channelName}({channelID})" if channelName is not None and display_channel_id is True else f"{channelName}" if channelName is not None else f"[{channelID}]" if display_channel_id is True else ""
-            msgPrefix = f"{serverTag}{' ➜  ' if serverTag != '' else ''}{channelTag} <{username}{f'({userID})' if display_user_id else ''}>: "
+            msgPrefix = f"{messageID} {serverTag}{' ➜  ' if serverTag != '' else ''}{channelTag} <{username}{f'({userID})' if display_user_id else ''}>: "
 
             if "content" in event and event["content"] != "":
                 content = event["content"]
@@ -125,9 +130,17 @@ def on_message(ws, message):
                     if "CREATE" in intent:
                         for ctx in msg:
                             log.msg(ctx)
+                            storeMessages.append({'id': messageID, 'username': username,'content': content})
                     if "UPDATE" in intent:
+                        result = next(
+                        (item for item in storeMessages if item['id'] == messageID),
+                        {}
+                        )
                         for ctx in msg:
-                            log.edit(ctx)
+                            log.edit(ctx +" "+ "Before Edit: //"+ f"{result.get('content')}")
+                            storeMessages.remove(result)
+                            storeMessages.append({'id': messageID, 'username': username,'content': content})
+
 
                 # filter
                 if enable_server_whitelist and serverID in whitelist_sever:
@@ -139,7 +152,6 @@ def on_message(ws, message):
                 elif enable_server_whitelist is False and enable_channel_whitelist is False and enable_server_blacklist is False and enable_channel_blacklist is False:
                     printOutput()
                 
-
             if "embeds" in event:
                 embeds = event["embeds"]
                 msg = [] if "content" in event and event["content"] != "" else [msgPrefix+Colorcode.gray+"{This is a embed message ⬇⬇⬇⬇ }"+Colorcode.reset] if len(embeds) > 0 else [msgPrefix+Colorcode.gray+"{empty embed message}"+Colorcode.reset]
@@ -157,6 +169,17 @@ def on_message(ws, message):
                 # output
                 for ctx in msg:
                     log.embed(ctx)
+
+            # delete event
+            if "DELETE" in intent:
+                log.debug("deleted")
+                result = next(
+                (item for item in storeMessages if item['id'] == messageID),
+                {}
+                )
+                log.delete(f"{result.get('id')} "+f"<{result.get('username')}>: "+f"{result.get('content')}")
+                storeMessages.remove(result)
+
 
     except Exception as err:
         clog.error(err)
