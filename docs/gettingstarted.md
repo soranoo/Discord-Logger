@@ -17,7 +17,14 @@ To install the Python package dependencies you have to type `pip install -r requ
 <a name="finding-discord-user-token"></a>
 ## 2. Finding Discord User Token
 
-You can find your Discord user token through [here](./gettoken.md).
+First, You have to use F12 on any browser that support local storage. <br />
+Then, click to Application, search for token. <br />
+![Photo 1](./imgs/F12-local-storage.png) <br />
+Next, click on the "Toggle device emulation", click on Local Storage then click back "discord". <br />
+![Photo 2](./imgs/Toggle-device-emulation.png) <br />
+The token will appear. <br />
+![Photo 3](./imgs/token.png)<br />
+
 
 The user token will make use of [the next part](#setting-up-configuration).
 
