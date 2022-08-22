@@ -2,8 +2,8 @@
 ## Finding Discord User Token
 First, You have to use F12 on any browser that support local storage. <br />
 Then, click to Application, search for token. <br />
-[Photo 1](./1.png) <br />
+![Photo 1](./1.png) <br />
 Next, click on the "Toggle device emulation", click on Local Storage then click back "discord". <br />
-[Photo 2](./2.png) <br />
+![Photo 2](./2.png) <br />
 The token will appear. <br />
-[Photo 3](./3.png)
+![Photo 3](./3.png)
