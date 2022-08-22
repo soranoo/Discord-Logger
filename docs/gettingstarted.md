@@ -16,8 +16,11 @@ To install the Python package dependencies you have to type `pip install -r requ
 
 <a name="finding-discord-user-token"></a>
 ## 2. Finding Discord User Token
+1. Log into [Discord Web Client](https://discord.com/) on your desktop browser.
+2. Press `Ctrl+Shift+I` (or `Cmd+Option+I` on Mac) to turn on `Developer Tools`.
+3. Reload the page by pressing `F5`.
 
-You can find your Discord user token through [[Discord Help Guild]](https://discordhelp.net/discord-token).
+![get-discord-token](./imgs/get-discord-token.png)
 
 The user token will make use of [the next part](#setting-up-configuration).
 
