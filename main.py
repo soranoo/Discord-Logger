@@ -1,18 +1,23 @@
-import toml
+from datetime import datetime
 import websocket # websocket-client
 import json
 import threading
 import time
+import os
+import pyfiglet
 
 from rich import print, traceback
+from datetime import datetime
 
-from src.logger import log, Colorcode
-from src import eventSystem
+from src import config, project_main_directory
+from src import log, add_logging_level, log_levels, Colorcode # log
+from src import subscribe, unsubscribe, post_event # event system
+from src import db_path, db_write, db_read, db_create_table, datetime_to_db_date # database
 
 traceback.install()
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) # get current directory
 
 # ---------------* Common *---------------
-config = toml.load("config.toml")
 discord_webSocket = config.get("discord_webSocket")
 discord_user_token = config.get("discord_user_token")
 auto_reconnect = config.get("auto_reconnect")
@@ -31,17 +36,29 @@ enable_channel_blacklist = config.get("enable_channel_blacklist")
 blacklist_sever = config.get("blacklist_sever")
 blacklist_channel = config.get("blacklist_channel")
 
+db_table = "logger"
+
 class clog:
     def error(ctx):
         log.error(f"{Colorcode.red}{ctx}{Colorcode.reset}")
     def warning(ctx):
         log.warning(f"{Colorcode.yellow}{ctx}{Colorcode.reset}")
 
-# ---------------* Store Message *---------------
-storeMessages = [
-]
-
 # ---------------* Main *---------------
+# welcome message
+print(pyfiglet.figlet_format("Discord  Logger"))
+
+add_logging_level("DISCORD", log_levels.DISCORD, "white")
+add_logging_level("MSG", log_levels.MSG, "cyan")
+add_logging_level("EDIT", log_levels.EDIT, "yellow")
+add_logging_level("DELETE", log_levels.DELETE, "red")
+add_logging_level("EMBED", log_levels.EMBED, "cyan")
+
+db_create_table(db_table, ["message_id", "server_id", "channel_id", "user_id", "username", "content"])
+
+def get_current_timestamp():
+    return datetime.now().timestamp()
+
 def send_json_request(ws, request):
     ws.send(json.dumps(request))
 
@@ -50,7 +67,7 @@ def heartbeat(ws, interval = 40, loop = False):
     if loop:
         def stopHeartbeat(stop):
             return stop
-        stopFlag = eventSystem.subscribe("stop_heartbeat", stopHeartbeat)
+        stopFlag = subscribe("stop_heartbeat", stopHeartbeat)
     while True:
         heartbeatJSON = {
             "op": 1,
@@ -67,12 +84,13 @@ def heartbeat(ws, interval = 40, loop = False):
             time.sleep(interval)
         else:
             if stopFlag:
-                eventSystem.unsubscribe("stop_heartbeat", stopHeartbeat)
+                unsubscribe("stop_heartbeat", stopHeartbeat)
             break
 
 
 def on_message(ws, message):
     json_message = json.loads(message)
+    sub = f"{Colorcode.gray}>{Colorcode.reset}"
     try:        
         op_code = json_message["op"] # ref: https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         if op_code == 10:
@@ -80,77 +98,118 @@ def on_message(ws, message):
             heartbeatInterval = (json_message["d"]["heartbeat_interval"]/1000)-1
             log.info(f"Set heartbeat interval to {heartbeatInterval}s.")
             # Start heartbeat cycle
-            newThread = threading.Thread(target=heartbeat, args=[ws, heartbeatInterval, True])
-            newThread.daemon = True
-            newThread.start()
+            new_thread = threading.Thread(target=heartbeat, args=[ws, heartbeatInterval, True])
+            new_thread.daemon = True
+            new_thread.start()
             log.info("Start listening...")
         elif op_code == 6 or op_code == 7:
             reconnect_discord_ws()
         elif op_code == 0:
-            sub = f"{Colorcode.gray}﹃{Colorcode.reset}"
             event = json_message["d"]
             intent = json_message["t"] # ref: https://discord.com/developers/docs/topics/gateway#gateway-intents
-            messageID = event["id"] if "id" in event else None
+            message_id = event["id"] if "id" in event else None
             username = event["author"]["username"] if "author" in event else Colorcode.gray+"unknown"+Colorcode.reset
-            userID = event["author"]["id"] if "author" in event else Colorcode.gray+"N/A"+Colorcode.reset
-            serverID = event["guild_id"] if "guild_id" in event else None
-            serverName = None
-            if serverID != None:
+            user_id = event["author"]["id"] if "author" in event else Colorcode.gray+"N/A"+Colorcode.reset
+            server_id = event["guild_id"] if "guild_id" in event else None
+            server_name = None
+            if server_id != None:
                 for server in define_server:
-                    if serverID in server[0]:
-                        serverName = server[1][0]
+                    if server_id in server[0]:
+                        server_name = server[1][0]
                         break
 
-            channelID = event["channel_id"] if "channel_id" in event else None
-            channelName = None
+            channel_id = event["channel_id"] if "channel_id" in event else None
+            channel_name = None
             for channel in define_channel:
-                if channelID in channel[0]:
-                    channelName = channel[1][0]
+                if channel_id in channel[0]:
+                    channel_name = channel[1][0]
                     break
-                if serverID is None:
-                    channelName = "Direct Message"
+                if server_id is None:
+                    channel_name = "Direct Message"
                     break
 
-            serverTag = f"[{serverName}({serverID})]" if serverName is not None and display_server_id is True and serverID != None else f"[{serverName}]" if serverName is not None and serverID != None else f"[{serverID}]" if display_server_id is True and serverID != None else ""
-            channelTag = f"{channelName}({channelID})" if channelName is not None and display_channel_id is True else f"{channelName}" if channelName is not None else f"[{channelID}]" if display_channel_id is True else ""
-            msgPrefix = f"{messageID} {serverTag}{' ➜  ' if serverTag != '' else ''}{channelTag} <{username}{f'({userID})' if display_user_id else ''}>: "
+            server_tag = f"[{server_name}({server_id})]" if server_name is not None and display_server_id is True and server_id != None else f"[{server_name}]" if server_name is not None and server_id != None else f"[{server_id}]" if display_server_id is True and server_id != None else ""
+            channel_tag = f"{channel_name}({channel_id})" if channel_name is not None and display_channel_id is True else f"{channel_name}" if channel_name is not None else f"[{channel_id}]" if display_channel_id is True else ""
+
+            def create_msg_prefix(server_tag = server_tag, channel_tag = channel_tag, username = username, user_id = user_id):
+                return f"{server_tag}{' ➜  ' if server_tag != '' else ''}{channel_tag} <{username}{f'({user_id})' if display_user_id else ''}>: "
+
+            msgPrefix = create_msg_prefix()
+
+            def process_content(content:str, join_prefix:bool = True, msg_prefix:str = msgPrefix) -> list:
+                multiline_content = ""
+                if "\n" in content:
+                    multiline_content = content.split("\n")
+                    content = Colorcode.gray+"{This is a multiline content vvv }"+Colorcode.reset
+                msg = [f"{msg_prefix if join_prefix else ''}{content}"]
+                if multiline_content != "":
+                    for ctx in multiline_content:
+                        msg.append(f"{sub} {ctx}")
+                return msg
+
+            def do_log(raw_content: str):
+                username = event["author"]["username"] if "author" in event else Colorcode.gray+"unknown"+Colorcode.reset
+                if "CREATE" in intent:
+                    db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content"],
+                            [get_current_timestamp(), "new_message", message_id, server_id, user_id, channel_id, username, raw_content])
+                    for ctx in process_content(raw_content):
+                        log.msg(ctx)
+                        
+                if "UPDATE" in intent:
+                    record = db_read(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content"],
+                            f"message_id = '{message_id}'")
+                    if len(record) > 0:
+                        # find the newest record
+                        newest_record = record[-1]
+                        old_text = newest_record[-1]
+                        log.edit(f"{msgPrefix}")
+                        log.edit(f"{Colorcode.gray}" + "{FROM}" + f"{Colorcode.reset}")
+                        for ctx in process_content(old_text, False):
+                            log.edit(ctx)
+                        log.edit(f"{Colorcode.gray}" + "{TO}" + f"{Colorcode.reset}")
+                        for ctx in process_content(raw_content, False):
+                            log.edit(ctx)
+                    else:
+                        log.edit(f"{msgPrefix}")
+                        log.edit(f"{Colorcode.gray}" + "{FROM}" + f"{Colorcode.reset}")
+                        log.edit(f"{Colorcode.gray}<NO RECORD FOUND>{Colorcode.reset}")
+                        log.edit(f"{Colorcode.gray}" + "{TO}" + f"{Colorcode.reset}")
+                        for ctx in process_content(raw_content, False):
+                            log.edit(ctx)      
+                    db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content"],
+                            [get_current_timestamp(), "edit_message", message_id, server_id, user_id, channel_id, username, raw_content])
+                            
+                if "DELETE" in intent:
+                    record = db_read(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content"],
+                            f"message_id = '{message_id}'")
+                    if len(record) > 0:
+                        # find the newest record
+                        newest_record = record[-1]
+                        old_text = newest_record[-1]
+                        username = newest_record[6]
+                        db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content"],
+                                [get_current_timestamp(), "delete_message", message_id, server_id, user_id, channel_id, username, old_text])
+                        for ctx in process_content(old_text, msg_prefix=create_msg_prefix(username=username)):
+                            log.delete(ctx)
+                    else:
+                        log.delete(f"{msgPrefix}{Colorcode.gray}<NO RECORD FOUND>{Colorcode.reset}")
+                        db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content"],
+                                [get_current_timestamp(), "delete_message", message_id, server_id, user_id, channel_id, username, None])
 
             if "content" in event and event["content"] != "":
-                content = event["content"]
-                multilineContent = ""
-                if "\n" in content:
-                    multilineContent = content.split("\n")
-                    content = Colorcode.gray+"{This is a multiline content ⬇⬇⬇⬇ }"+Colorcode.reset
-                msg = [f"{msgPrefix}{content}"]
-                if multilineContent != "":
-                    for ctx in multilineContent:
-                        msg.append(f"{sub} {ctx}")
-
-                def printOutput():
-                    if "CREATE" in intent:
-                        for ctx in msg:
-                            log.msg(ctx)
-                            storeMessages.append({'id': messageID, 'username': username,'content': content})
-                    if "UPDATE" in intent:
-                        result = next(
-                        (item for item in storeMessages if item['id'] == messageID),
-                        {}
-                        )
-                        for ctx in msg:
-                            log.edit(ctx +" "+ "Before Edit: //"+ f"{result.get('content')}")
-                            storeMessages.remove(result)
-                            storeMessages.append({'id': messageID, 'username': username,'content': content})
-
+                raw_content = event["content"]
 
                 # filter
-                if enable_server_whitelist and serverID in whitelist_sever:
-                    if (enable_channel_whitelist and channelID in whitelist_channel) or (enable_channel_blacklist and channelID not in blacklist_channel) or (enable_channel_whitelist is False and enable_channel_blacklist is False):
-                        printOutput()
-                elif serverID is None and ((enable_channel_whitelist and channelID in whitelist_channel) or (enable_channel_blacklist and channelID not in blacklist_channel) or (enable_channel_whitelist is False and enable_channel_blacklist is False)):
-                    printOutput()
+                if enable_server_whitelist and server_id in whitelist_sever:
+                    if (enable_channel_whitelist and channel_id in whitelist_channel) or (enable_channel_blacklist and channel_id not in blacklist_channel) or (enable_channel_whitelist is False and enable_channel_blacklist is False):
+                        do_log(raw_content)
+                elif server_id is None and ((enable_channel_whitelist and channel_id in whitelist_channel) or (enable_channel_blacklist and channel_id not in blacklist_channel) or (enable_channel_whitelist is False and enable_channel_blacklist is False)):
+                    do_log(raw_content)
                 # log all messages
                 elif enable_server_whitelist is False and enable_channel_whitelist is False and enable_server_blacklist is False and enable_channel_blacklist is False:
-                    printOutput()
+                    do_log(raw_content)
+            elif "DELETE" in intent:
+                do_log(None)
                 
             if "embeds" in event:
                 embeds = event["embeds"]
@@ -170,15 +229,7 @@ def on_message(ws, message):
                 for ctx in msg:
                     log.embed(ctx)
 
-            # delete event
-            if "DELETE" in intent:
-                result = next(
-                (item for item in storeMessages if item['id'] == messageID),
-                {}
-                )
-                log.delete(f"{result.get('id')} "+f"<{result.get('username')}>: "+f"{result.get('content')}")
-                storeMessages.remove(result)
-
+            
 
     except Exception as err:
         clog.error(err)
@@ -222,7 +273,7 @@ def connect_discord_ws(timeout=-1):
     ws.run_forever()
 
 def reconnect_discord_ws():
-    eventSystem.post_event("stop_heartbeat", True) # stop current heartbeat cycle
+    post_event("stop_heartbeat", True) # stop current heartbeat cycle
     connect_discord_ws()
 
 if __name__ == "__main__":

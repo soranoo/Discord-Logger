@@ -5,6 +5,7 @@ commonmark==0.9.1
 gevent==21.12.0
 greenlet==1.1.2
 pycparser==2.21
+pyfiglet==0.8.post1
 Pygments==2.11.2
 rich==11.0.0
 toml==0.10.2
