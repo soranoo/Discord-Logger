@@ -1,14 +1,17 @@
 # Discord-Logger
 Project start on 11-08-2021 and spin off from my secret project on 18-01-2022 :P
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
 ### Portal ↠ [Installation](docs/gettingstarted.md#installing-python-package) · [Usage](docs/gettingstarted.md#logger-deployment) ↞
+
+## :newspaper: NEWS
+Config file has been updated. Please check the new config file `config.example.toml`.
 
 ## 🗝️ Features
 * Not a Discord bot.
 * Log Discord chats without setting up a logging bot.
-* Can log all the personal messages(PM) that you received.
-* Auto reconnection.
+* Can log all the direct messages(DM) that you received.
+* Supported auto reconnection.
 
 ## 🚩 How it works ?
 Connect [Discord gateway](https://discord.com/developers/docs/topics/gateway) through websocket.
