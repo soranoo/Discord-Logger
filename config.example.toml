@@ -1,9 +1,8 @@
 # ---------------* Basic *---------------
 auto_reconnect = false
 
-# --------------* Discord *--------------
+# --------------* Discord Token *--------------
 discord_user_token = ""
-discord_webSocket = "wss://gateway.discord.gg/?v=9&encording=json"
 
 # ----------------* Log *----------------
 # save log as a text file
@@ -18,13 +17,6 @@ log_time_zone = false
 display_server_id = false
 display_channel_id = false
 display_user_id = false
-
-define_server = [
-    [["server_id"],["custom_server_name"]],
-]
-define_channel = [
-    [["channel_id"],["custom_channel_name"]],
-]
 
 # ----------------* Filter *---------------
 enable_server_whitelist = false
