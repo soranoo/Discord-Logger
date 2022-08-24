@@ -20,11 +20,7 @@ To install the Python package dependencies you have to type `pip install -r requ
 2. Press `Ctrl+Shift+I` (or `Cmd+Option+I` on Mac) to turn on `Developer Tools`.
 3. Reload the page by pressing `F5`.
 
-<<<<<<< Updated upstream
-You can find your Discord user token through [[Discord Help Guild]](https://discordhelp.net/discord-token).
-=======
 ![get-discord-token](./imgs/get-discord-token.png)
->>>>>>> Stashed changes
 
 The user token will make use of [the next part](#setting-up-configuration).
 
