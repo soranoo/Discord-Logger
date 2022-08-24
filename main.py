@@ -41,12 +41,9 @@ class clog:
     def warning(ctx):
         log.warning(f"{Colorcode.yellow}{ctx}{Colorcode.reset}")
 
-<<<<<<< Updated upstream
-=======
 # ---------------* Store Server IDs *---------------
 servers = {}
 
->>>>>>> Stashed changes
 # ---------------* Main *---------------
 # welcome message
 print(pyfiglet.figlet_format("Discord  Logger"))
@@ -110,31 +107,6 @@ def on_message(ws, message):
         elif op_code == 0:
             event = json_message["d"]
             intent = json_message["t"] # ref: https://discord.com/developers/docs/topics/gateway#gateway-intents
-<<<<<<< Updated upstream
-            username = event["author"]["username"] if "author" in event else Colorcode.gray+"unknown"+Colorcode.reset
-            userID = event["author"]["id"] if "author" in event else Colorcode.gray+"N/A"+Colorcode.reset
-            serverID = event["guild_id"] if "guild_id" in event else None
-            serverName = None
-            if serverID != None:
-                for server in define_server:
-                    if serverID in server[0]:
-                        serverName = server[1][0]
-                        break
-
-            channelID = event["channel_id"] if "channel_id" in event else None
-            channelName = None
-            for channel in define_channel:
-                if channelID in channel[0]:
-                    channelName = channel[1][0]
-                    break
-                if serverID is None:
-                    channelName = "PrivateChat"
-                    break
-
-            serverTag = f"[{serverName}({serverID})]" if serverName is not None and display_server_id is True and serverID != None else f"[{serverName}]" if serverName is not None and serverID != None else f"[{serverID}]" if display_server_id is True and serverID != None else ""
-            channelTag = f"{channelName}({channelID})" if channelName is not None and display_channel_id is True else f"{channelName}" if channelName is not None else f"[{channelID}]" if display_channel_id is True else ""
-            msgPrefix = f"{serverTag}{' ➜  ' if serverTag != '' else ''}{channelTag} <{username}{f'({userID})' if display_user_id else ''}>: "
-=======
             message_id = event["id"] if "id" in event else None
             username = event["author"]["username"] if "author" in event else Colorcode.gray+"unknown"+Colorcode.reset
             user_id = event["author"]["id"] if "author" in event else Colorcode.gray+"N/A"+Colorcode.reset
@@ -157,7 +129,6 @@ def on_message(ws, message):
                     channel_name = servers[server_id]["channels"][channel_id]
             else:
                 channel_name = "Direct Message"
->>>>>>> Stashed changes
 
             server_tag = f"[{server_name}({server_id})]" if server_name is not None and display_server_id is True and server_id != None else f"[{server_name}]" if server_name is not None and server_id != None else f"[{server_id}]" if display_server_id is True and server_id != None else ""
             channel_tag = f"{channel_name}({channel_id})" if channel_name is not None and display_channel_id is True else f"{channel_name}" if channel_name is not None else f"[{channel_id}]" if display_channel_id is True else ""
@@ -184,15 +155,6 @@ def on_message(ws, message):
                         msg.append(f"{sub} {ctx}")
                 return msg
 
-<<<<<<< Updated upstream
-                def printOutput():
-                    if "CREATE" in intent:
-                        for ctx in msg:
-                            log.msg(ctx)
-                    if "UPDATE" in intent:
-                        for ctx in msg:
-                            log.edit(ctx)
-=======
             def do_log(raw_content: str):
                 username = event["author"]["username"] if "author" in event else Colorcode.gray+"unknown"+Colorcode.reset
                 if "CREATE" in intent:
@@ -247,8 +209,6 @@ def on_message(ws, message):
 
             if "content" in event and event["content"] != "":
                 raw_content = event["content"]
->>>>>>> Stashed changes
-
                 # filter
                 if enable_server_whitelist and server_id in whitelist_sever:
                     if (enable_channel_whitelist and channel_id in whitelist_channel) or (enable_channel_blacklist and channel_id not in blacklist_channel) or (enable_channel_whitelist is False and enable_channel_blacklist is False):
@@ -289,11 +249,6 @@ def on_message(ws, message):
                     for attachment in event["attachments"]:
                         log.embed("^Attachment URL: "+ attachment["url"])        
 
-<<<<<<< Updated upstream
-=======
-
-
->>>>>>> Stashed changes
     except Exception as err:
         clog.error(err)
 
