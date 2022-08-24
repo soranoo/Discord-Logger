@@ -1,11 +1,11 @@
 # Getting Started with Discord-Logger
 
-## Installation
+## ⚙️ Installation
 - [Installing Python package](#installing-python-package)
 - [Finding Discord User Token](#finding-discord-user-token)
 - [Setting up configuration](#setting-up-configuration)
 
-## Usage
+## 🌻 Usage
 - [Logger Deployment](#logger-deployment)
 
 <a name="installing-python-package"></a>
@@ -16,15 +16,11 @@ To install the Python package dependencies you have to type `pip install -r requ
 
 <a name="finding-discord-user-token"></a>
 ## 2. Finding Discord User Token
+1. Log into [Discord Web Client](https://discord.com/) on your desktop browser.
+2. Press `Ctrl+Shift+I` (or `Cmd+Option+I` on Mac) to turn on `Developer Tools`.
+3. Reload the page by pressing `F5`.
 
-First, You have to use F12 on any browser that support local storage. <br />
-Then, click to Application, search for token. <br />
-![Photo 1](./imgs/F12-local-storage.png) <br />
-Next, click on the "Toggle device emulation", click on Local Storage then click back "discord". <br />
-![Photo 2](./imgs/Toggle-device-emulation.png) <br />
-The token will appear. <br />
-![Photo 3](./imgs/token.png)<br />
-
+![get-discord-token](./imgs/get-discord-token.png)
 
 The user token will make use of [the next part](#setting-up-configuration).
 
