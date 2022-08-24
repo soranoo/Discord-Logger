@@ -75,10 +75,14 @@ def write(table: str, fields: list, values: list):
         media_filename,
     ])`
     """
-    with sqlite3.connect(db_path) as conn:
-        c = conn.cursor()
+    try:
+        with sqlite3.connect(db_path) as conn:
+            c = conn.cursor()
 
-        c.execute(set_insert_query(table, fields), values)
+            c.execute(set_insert_query(table, fields), values)
+    except Exception as err:
+        log.db_error(f"Writing from table <{table}> failed, reason: {err}")
+        return None
 
 def read(table: str, fields: list, condition=None) -> list:
     """
@@ -89,22 +93,26 @@ def read(table: str, fields: list, condition=None) -> list:
     ### Example:
     `read("table", ["type", "date", "chat_id", "message_id", "user_id", "text", "media_type", "media_filename"], "type = 'new_message'")`
     """
-    with sqlite3.connect(db_path) as conn:
-        c = conn.cursor()
+    try:
+        with sqlite3.connect(db_path) as conn:
+            c = conn.cursor()
 
-        if condition:
-            c.execute(f"""
-                SELECT {", ".join(fields)}
-                FROM {table}
-                WHERE {condition}
-            """)
-        else:
-            c.execute(f"""
-                SELECT {", ".join(fields)}
-                FROM {table}
-            """)
+            if condition:
+                c.execute(f"""
+                    SELECT {", ".join(fields)}
+                    FROM {table}
+                    WHERE {condition}
+                """)
+            else:
+                c.execute(f"""
+                    SELECT {", ".join(fields)}
+                    FROM {table}
+                """)
 
-        return c.fetchall()
+            return c.fetchall()
+    except Exception as err:
+        log.db_error(f"Reading from table <{table}> failed, reason: {err}")
+        return None
 
 def datetime_to_db_date(date: datetime) -> str:
     """

@@ -14,10 +14,15 @@ from src import log, add_logging_level, log_levels, Colorcode # log
 from src import subscribe, unsubscribe, post_event # event system
 from src import db_path, db_write, db_read, db_create_table, datetime_to_db_date # database
 
+# ---------------* Init *---------------
+# welcome message
+print(pyfiglet.figlet_format("Discord  Logger"))
+
 traceback.install()
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__))) # get current directory
 
-# ---------------* Common *---------------
+# ---------------* Config *---------------
+discord_web_socket = config.get("discord_web_socket")
 discord_user_token = config.get("discord_user_token")
 auto_reconnect = config.get("auto_reconnect")
 display_server_id = config.get("display_server_id")
@@ -33,7 +38,12 @@ enable_channel_blacklist = config.get("enable_channel_blacklist")
 blacklist_sever = config.get("blacklist_sever")
 blacklist_channel = config.get("blacklist_channel")
 
-db_table = "logger"
+# ---------------* Log *---------------
+add_logging_level("DISCORD", log_levels.DISCORD, "purple")
+add_logging_level("MSG", log_levels.MSG, "cyan")
+add_logging_level("EDIT", log_levels.EDIT, "yellow")
+add_logging_level("DELETE", log_levels.DELETE, "red")
+add_logging_level("EMBED", log_levels.EMBED, "cyan")
 
 class clog:
     def error(ctx):
@@ -41,21 +51,16 @@ class clog:
     def warning(ctx):
         log.warning(f"{Colorcode.yellow}{ctx}{Colorcode.reset}")
 
-# ---------------* Store Server IDs *---------------
+# ---------------* DB *---------------
+db_table = "logger"
+db_fields = ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"]
+db_create_table(db_table, db_fields[2:])
+
+
+# ---------------* Server *---------------
 servers = {}
 
 # ---------------* Main *---------------
-# welcome message
-print(pyfiglet.figlet_format("Discord  Logger"))
-
-add_logging_level("DISCORD", log_levels.DISCORD, "white")
-add_logging_level("MSG", log_levels.MSG, "cyan")
-add_logging_level("EDIT", log_levels.EDIT, "yellow")
-add_logging_level("DELETE", log_levels.DELETE, "red")
-add_logging_level("EMBED", log_levels.EMBED, "cyan")
-
-db_create_table(db_table, ["message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"])
-
 def get_current_timestamp():
     return datetime.now().timestamp()
 
@@ -75,7 +80,7 @@ def heartbeat(ws, interval = 40, loop = False):
         }
         try:
             send_json_request(ws, heartbeatJSON)
-            log.debug(f"Heartbeat Sent~")
+            # log.debug(f"Heartbeat Sent~")
         except Exception as err:
             clog.error(f"Heartbeat sent failed, reason: {err}")
             log.info(f"Heartbeat Stopped")
@@ -94,14 +99,14 @@ def on_message(ws, message):
     try:        
         op_code = json_message["op"] # ref: https://discord.com/developers/docs/topics/opcodes-and-status-codes#gateway-gateway-opcodes
         if op_code == 10:
-            log.debug("Initialize heartbeat cycle...")
+            log.discord("Initialize heartbeat cycle...")
             heartbeatInterval = (json_message["d"]["heartbeat_interval"]/1000)-1
-            log.info(f"Set heartbeat interval to {heartbeatInterval}s.")
+            log.discord(f"Set heartbeat interval to {heartbeatInterval}s.")
             # Start heartbeat cycle
             new_thread = threading.Thread(target=heartbeat, args=[ws, heartbeatInterval, True])
             new_thread.daemon = True
             new_thread.start()
-            log.info("Start listening...")
+            log.discord("Start listening...")
         elif op_code == 6 or op_code == 7:
             reconnect_discord_ws()
         elif op_code == 0:
@@ -114,7 +119,16 @@ def on_message(ws, message):
             channel_id = event["channel_id"] if "channel_id" in event else None
             server_name = None
             channel_name = None
-            attachment_url = event["attachments"][0]["url"] if "attachments" in event and len(event["attachments"]) > 0 else None
+            attachment_urls = []
+            attachment_urls_db_format = ""
+            # fatch attachment urls
+            if ("attachments" in event and len(event["attachments"]) > 0):
+                for attachment in event["attachments"]:
+                    attachment_urls.append(attachment["url"])
+                attachment_urls_db_format = str(attachment_urls).replace("[","").replace("]","").replace("'","").replace(",","\n").strip()
+            else:
+                attachment_urls = None
+                attachment_urls_db_format = None
             # get all servers and channels
             if "READY" in intent:
                 for event_guilds in event["guilds"]:
@@ -158,13 +172,13 @@ def on_message(ws, message):
             def do_log(raw_content: str):
                 username = event["author"]["username"] if "author" in event else Colorcode.gray+"unknown"+Colorcode.reset
                 if "CREATE" in intent:
-                    db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"],
-                            [get_current_timestamp(), "new_message", message_id, server_id, user_id, channel_id, username, raw_content, attachment_url])
+                    db_write(db_table, db_fields,
+                            [get_current_timestamp(), "new_message", message_id, server_id, channel_id, user_id, username, raw_content, attachment_urls_db_format])
                     for ctx in process_content(raw_content):
                         log.msg(ctx)
                         
                 if "UPDATE" in intent:
-                    record = db_read(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"],
+                    record = db_read(db_table, db_fields,
                             f"message_id = '{message_id}'")
                     if len(record) > 0:
                         # find the newest record
@@ -184,11 +198,11 @@ def on_message(ws, message):
                         log.edit(f"{Colorcode.gray}" + "{TO}" + f"{Colorcode.reset}")
                         for ctx in process_content(raw_content, False):
                             log.edit(ctx)      
-                    db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"],
-                            [get_current_timestamp(), "edit_message", message_id, server_id, user_id, channel_id, username, raw_content, attachment])
+                    db_write(db_table, db_fields,
+                            [get_current_timestamp(), "edit_message", message_id, server_id, channel_id, user_id, username, raw_content, attachment_urls_db_format])
                             
                 if "DELETE" in intent:
-                    record = db_read(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"],
+                    record = db_read(db_table, db_fields,
                             f"message_id = '{message_id}'")
                     if len(record) > 0:
                         # find the newest record
@@ -196,16 +210,21 @@ def on_message(ws, message):
                         old_text = newest_record[-2]
                         username = newest_record[6]
                         attachment = newest_record[-1]
-                        db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"],
-                                [get_current_timestamp(), "delete_message", message_id, server_id, user_id, channel_id, username, old_text, attachment])
-                        for ctx in process_content(old_text, msg_prefix=create_msg_prefix(username=username)):
-                            log.delete(ctx)
-                            if attachment:
-                                log.delete("^Attachment URL:"+ attachment)
+                        db_write(db_table, db_fields,
+                                [get_current_timestamp(), "delete_message", message_id, server_id, channel_id, user_id, username, old_text, attachment])
+                        if old_text is not None:
+                            for ctx in process_content(old_text, msg_prefix=create_msg_prefix(username=username)):
+                                log.delete(ctx)
+                        if attachment is not None:
+                            attachments = attachment.split("\n")
+                            if old_text is None:
+                                log.delete(f"{create_msg_prefix(username=username)}{Colorcode.gray}"+"{This is a attachment only message vvv}"+f"{Colorcode.reset}")
+                            for attachment in attachments:
+                                log.delete(f"{Colorcode.gray}^[Attachment URL]{Colorcode.reset} {attachment}")
                     else:
                         log.delete(f"{msgPrefix}{Colorcode.gray}<NO RECORD FOUND>{Colorcode.reset}")
-                        db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"],
-                                [get_current_timestamp(), "delete_message", message_id, server_id, user_id, channel_id, username, None, None])
+                        db_write(db_table, db_fields,
+                                [get_current_timestamp(), "delete_message", message_id, server_id, channel_id, user_id, username, None, None])
 
             if "content" in event and event["content"] != "":
                 raw_content = event["content"]
@@ -224,12 +243,12 @@ def on_message(ws, message):
 
             if "embeds" in event:
                 embeds = event["embeds"]
-                msg = [] if "content" in event and event["content"] != "" else [msgPrefix+Colorcode.gray+"{This is a embed message ⬇⬇⬇⬇ }"+Colorcode.reset] if len(event["attachments"]) > 0 else [msgPrefix+Colorcode.gray+"{This message only contain attachment}"+Colorcode.reset] if len(embeds) > 0 else [msgPrefix+Colorcode.gray+"{empty embed message}"+Colorcode.reset]
+                msg = [] if "content" in event and event["content"] != "" else [msgPrefix+Colorcode.gray+"{This is a embed message vvv }"+Colorcode.reset] if len(event["attachments"]) > 0 else [msgPrefix+Colorcode.gray+"{This message only contain attachment}"+Colorcode.reset] if len(embeds) > 0 else [msgPrefix+Colorcode.gray+"{empty embed message}"+Colorcode.reset]
                 for index, embed in enumerate(embeds):
                     for key, value in embed.items():
                         value = str(value).split("\n")
                         if len(value) > 1:
-                            msg.append(f"{sub}{key} ➜ {Colorcode.gray}"+"{This is a multiline " + key + " ⬇⬇⬇⬇ }"+Colorcode.reset)
+                            msg.append(f"{sub}{key} ➜ {Colorcode.gray}"+"{This is a multiline " + key + " vvv }"+Colorcode.reset)
                             for ctx in value:
                                 msg.append(f"{sub}{sub} {ctx}")
                         else:
@@ -240,14 +259,14 @@ def on_message(ws, message):
                 for ctx in msg:
                     log.embed(ctx)
                     # store attachments to db when content is empty
-                    db_write(db_table, ["date", "type", "message_id", "server_id", "channel_id", "user_id", "username", "content", "attachment"],
-                        [get_current_timestamp(), "new_message", message_id, server_id, user_id, channel_id, username, ctx, attachment_url])
+                    db_write(db_table, db_fields,
+                        [get_current_timestamp(), "new_message", message_id, server_id, channel_id, user_id, username, None, attachment_urls_db_format])
 
             # log attachments 
             if "attachments" in event:
                 if len(event["attachments"]) > 0:
                     for attachment in event["attachments"]:
-                        log.embed("^Attachment URL: "+ attachment["url"])        
+                        log.embed(f"{Colorcode.gray}^[Attachment URL]{Colorcode.reset} {attachment['url']}")        
 
     except Exception as err:
         clog.error(err)
@@ -256,12 +275,12 @@ def on_error(ws, error):
     clog.error(f"An error has occurred by the websocket, reason: {error}")
 
 def on_close(ws, close_status_code, close_msg):
-    log.info(f"### Disconnected ###")
-    log.info(f"Status Code: {close_status_code}")
-    log.info(f"Close Message: {close_msg}")
+    log.discord(f"### Disconnected ###")
+    log.discord(f"Status Code: {close_status_code}")
+    log.discord(f"Close Message: {close_msg}")
     if auto_reconnect:
         try:
-            log.info(f"Trying to reconnect...")
+            log.discord(f"Trying to reconnect...")
             reconnect_discord_ws()
         except Exception as error:
             clog.error(f"Reconnect failed, reason: {error}")
@@ -282,8 +301,8 @@ def on_open(ws):
     send_json_request(ws, login_payload)
 
 def connect_discord_ws(timeout=-1):
-    log.info(f"### Start ###")
-    ws = websocket.WebSocketApp("wss://gateway.discord.gg/?v=10&encording=json",
+    log.discord(f"### Start ###")
+    ws = websocket.WebSocketApp(discord_web_socket,
                             on_open = on_open,
                             on_message = on_message,
                             on_error = on_error,

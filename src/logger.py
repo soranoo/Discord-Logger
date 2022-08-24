@@ -33,10 +33,10 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 project_main_directory = os.path.dirname(__location__)
 
 config = toml.load(f"{project_main_directory}/config.toml")
-log_with_colors = config.get("log_color")
-log_with_time_zone = config.get("log_time_zone")
-save_log = config.get("log_save")
-log_with_full_colors = config.get("log_full_color")
+log_with_colors = config.get("log_with_colors")
+log_with_time_zone = config.get("log_with_time_zone")
+save_log = config.get("save_log")
+log_with_full_colors = False
 
 filename = "{:%d-%m-%Y}".format(datetime.now()) + ".log"
 log_colors={
