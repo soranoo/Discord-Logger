@@ -1,11 +1,11 @@
 # Getting Started with Discord-Logger
 
-## Installation
+## ⚙️ Installation
 - [Installing Python package](#installing-python-package)
 - [Finding Discord User Token](#finding-discord-user-token)
 - [Setting up configuration](#setting-up-configuration)
 
-## Usage
+## 🌻 Usage
 - [Logger Deployment](#logger-deployment)
 
 <a name="installing-python-package"></a>

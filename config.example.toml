@@ -3,28 +3,21 @@ auto_reconnect = false
 
 # --------------* Discord *--------------
 discord_user_token = ""
-discord_webSocket = "wss://gateway.discord.gg/?v=9&encording=json"
+discord_web_socket = "wss://gateway.discord.gg/?v=10&encording=json"
 
 # ----------------* Log *----------------
 # save log as a text file
-log_save = true
+save_log = true
 
 # console log with color
-log_color = true
+log_with_colors = true
 
 # include the current time zone into the log
-log_time_zone = false
+log_with_time_zone = false
 
 display_server_id = false
 display_channel_id = false
 display_user_id = false
-
-define_server = [
-    [["server_id"],["custom_server_name"]],
-]
-define_channel = [
-    [["channel_id"],["custom_channel_name"]],
-]
 
 # ----------------* Filter *---------------
 enable_server_whitelist = false

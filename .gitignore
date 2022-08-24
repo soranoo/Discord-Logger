@@ -4,3 +4,4 @@ start-env.py
 **/logs
 **/src/__pycache__
 *.pyc
+*.sqlite3
