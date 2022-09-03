@@ -4,13 +4,17 @@ Project start on 11-08-2021 and spin off from my secret project on 18-01-2022 :P
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
 ### Portal ↠ [Installation](docs/gettingstarted.md#installing-python-package) · [Usage](docs/gettingstarted.md#logger-deployment) ↞
 
+## :warning: **Disclaimer** :warning:
+According to Discord ToS. Selfbot is **AGAINST** their ToS. Use this at your own risk.
+
 ## :newspaper: NEWS
 Config file has been updated. Please check the new config file `config.example.toml`.
 
 ## 🗝️ Features
-* Not a Discord bot.
+* Not using Discord bot API.
 * Log Discord chats without setting up a logging bot.
-* Can log all the direct messages(DM) that you received.
+* Logged message show where it from (*Server, Channel / DM)
+* Can log deleted messages (*Logged messages will store into database)
 * Supported auto reconnection.
 
 ## 🚩 How it works ?
