@@ -8,10 +8,10 @@ Project start on 11-08-2021 and spin off from my secret project on 18-01-2022 :P
 Config file has been updated. Please check the new config file `config.example.toml`.
 
 ## 🗝️ Features
-* Not a Discord bot.
-* Log Discord chats without setting up a logging bot.
-* Can log all the direct messages(DM) that you received.
-* Supported auto reconnection.
+* Not using Discord bot API
+* Log Discord chats without setting up a logging bot on any server.
+* Can log direct messages(DM) that you received.
+* Supported auto-reconnect.
 
 ## 🚩 How it works ?
 Connect [Discord gateway](https://discord.com/developers/docs/topics/gateway) through websocket.
@@ -24,10 +24,17 @@ Connect [Discord gateway](https://discord.com/developers/docs/topics/gateway) th
 To install Discord-Logger, check out the [Getting Started guide](docs/gettingstarted.md).
 
 ## ⭐ TODO
-* Waiting for the your suggestion.
+* Waiting for your suggestion.
 
 ## 🐛 Known Issues
-* No known issues
+* Waiting for your report.
+
+## :bomb: Disclaimer
+I as the author assume no responsibility for errors or omissions in the contents of the Service.
+
+In no event shall I be liable for any special, direct, indirect, consequential, or incidental damages or any damages whatsoever, whether in an action of contract, negligence or other torts, arising out of or in connection with the use of the Service or the contents of the Service. I reserve the right to make additions, deletions, or modifications to the contents of the Service at any time without prior notice.
+
+(Service refers to the **Discord-Logger**.)
 
 ## :coffee: Donation
 [!["Donation"](https://raw.githubusercontent.com/soranoo/Donation/main/resources/image/DonateBtn.png)](https://github.com/soranoo/Donation) <- click me~
