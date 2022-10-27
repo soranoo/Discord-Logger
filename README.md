@@ -4,7 +4,7 @@ Project start on 11-08-2021 and spin off from my secret project on 18-01-2022 :P
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)&nbsp;&nbsp;&nbsp;[![Donation](https://img.shields.io/static/v1?label=Donation&message=❤️&style=social)](https://github.com/soranoo/Donation)
 ### Portal ↠ [Installation](docs/gettingstarted.md#installing-python-package) · [Usage](docs/gettingstarted.md#logger-deployment) ↞
 
-## :newspaper: NEWS
+## 📰 NEWS
 Config file has been updated. Please check the new config file `config.example.toml`.
 
 ## 🗝️ Features
@@ -23,18 +23,30 @@ Connect [Discord gateway](https://discord.com/developers/docs/topics/gateway) th
 ## 👾 Getting Started
 To install Discord-Logger, check out the [Getting Started guide](docs/gettingstarted.md).
 
+## 💛 Contributors
+<table>
+  <tr>
+  <td align="center">
+    <a href="https://github.com/RabbitYuKu">
+      <img src="https://avatars.githubusercontent.com/u/31384940?v=4" width="100" alt=""/>
+      <br><sub><b>RabbitYuKu</b></sub>
+    </a>
+  </td>
+  </tr>
+</table>
+
 ## ⭐ TODO
 * Waiting for your suggestion.
 
 ## 🐛 Known Issues
 * Waiting for your report.
 
-## :bomb: Disclaimer
+## 💣 Disclaimer
 I as the author assume no responsibility for errors or omissions in the contents of the Service.
 
 In no event shall I be liable for any special, direct, indirect, consequential, or incidental damages or any damages whatsoever, whether in an action of contract, negligence or other torts, arising out of or in connection with the use of the Service or the contents of the Service. I reserve the right to make additions, deletions, or modifications to the contents of the Service at any time without prior notice.
 
 (Service refers to the **Discord-Logger**.)
 
-## :coffee: Donation
+## ☕ Donation
 [!["Donation"](https://raw.githubusercontent.com/soranoo/Donation/main/resources/image/DonateBtn.png)](https://github.com/soranoo/Donation) <- click me~
